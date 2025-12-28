@@ -14,10 +14,10 @@ public class PurchaseService {
         int totalManhwaCount = 200;
 
         int chapter_count = Integer.parseInt(m.getChapters());
-        // 1. Popularity Score (Inverted Rank)
+        // Popularity Score (Inverted Rank)
         double rankScore = (double) (totalManhwaCount - m.getRank()) / totalManhwaCount * 20;
 
-        // 2. Volume Score (Handling unknown chapters)
+        // Volume Score (Handling unknown chapters)
         double chapterScore;
         if (chapter_count > 0) {
             chapterScore = chapter_count * 0.5; // 0.5 coins per chapter
@@ -26,27 +26,44 @@ public class PurchaseService {
             chapterScore = 25.0; 
         }
 
-        // 3. Quality Score
+        // Quality Score
         double ratingScore = m.getRating() * 2;
 
-        return Math.round(rankScore + chapterScore + ratingScore);
+        return (rankScore + chapterScore + ratingScore);
+    }
+
+    /**
+     * Calculates the cost to rent the Manhwa for a limited time (e.g., 72 hours).
+     * Usually set at 50% of the total calculated value.
+     * * @param manhwa_cost The total dynamic value calculated by calculateCoinValue.
+     * @return The rental cost as a float.
+     */
+    double getActualCOst(double manhwa_cost, String purchase_type) {
+        if (purchase_type == "rent") {
+            // 0.5f represents 50% of the total value
+            return (manhwa_cost * 0.5);
+        } else {
+            return manhwa_cost * 0.5;
+        }
+
     }
 
     public boolean rentManhwa(User user, Manhwa manhwa) {
-        double RENTAL_COST = calculateCoinValue(manhwa);
+        double RENTAL_COST = getActualCOst(calculateCoinValue(manhwa), "rent");
         Access access = new RentalAccess(manhwa);
         
         Transaction tx = new UnlockManhwa(user, RENTAL_COST, access);
         return tx.execute();
     }
 
-        public boolean buyManhwa(User user, Manhwa manhwa) {
-        double PERMANENT_COST = calculateCoinValue(manhwa);
+    public boolean buyManhwa(User user, Manhwa manhwa) {
+        double PERMANENT_COST = getActualCOst(calculateCoinValue(manhwa), "buy");
 
         Access access = new PermanentAccess(manhwa);
         Transaction tx = new UnlockManhwa(user, PERMANENT_COST, access);
         return tx.execute();
     }
 
+    
     
 }
