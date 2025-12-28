@@ -3,10 +3,10 @@ import domain.content.access.*;
 import domain.user.User;
 
 public class UnlockManhwa extends Transaction {
-    private int cost;
+    private double cost;
     private Access access;
 
-    public UnlockManhwa(User user, int cost, Access access) {
+    public UnlockManhwa(User user, double cost, Access access) {
         super(user);
         this.cost = cost;
         this.access = access;

@@ -12,7 +12,7 @@ public class User {
 
     public User() { 
         // default coin... would this work?
-        this(10);
+        this(100);
     }
 
     public Wallet getWallet() {

@@ -13,7 +13,12 @@ public class Library {
         accesses.add(access);
     }
 
-    public boolean hasValidAccess(Manhwa manhwa) {
+    public boolean hasValidAccess(Manhwa manhwa) 
+    /**
+     * is manhwa in user library
+     */
+
+    {
         for (Access a : accesses) {
             if (a.getManhwa() == manhwa && a.isValid()) {
                 return true;

@@ -10,7 +10,7 @@ public class Wallet {
     }
 
     // rents / buys a manhwa
-    public boolean deductCoins(int amount) {
+    public boolean deductCoins(double amount) {
         if (coins < amount) return false;
         coins -= amount;
         return true;

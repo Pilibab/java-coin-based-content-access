@@ -15,4 +15,9 @@ public class CsvOpener {
             System.out.println("Rank: " + m.getRank() + ", Title: " + m.getTitle());
         }
     }
+
+    public List<Manhwa> getDb() {
+        Repository repo = new Repository();
+        return repo.loadManhwaFromCSV();
+    }
 }
