@@ -1,0 +1,160 @@
+
+public class User {
+    private Wallet wallet;
+    private Library library;
+
+    public User(int coins) {
+        this.wallet = new Wallet(coins);
+        this.library = new Library();
+    }
+
+    public User() { 
+        // default coin... would this work?
+        this(10);
+    }
+
+    public Wallet getWallet() {
+        return wallet;
+    }
+
+    public Library getLibrary() {
+        return library;
+    }
+}
+
+public class Wallet {
+
+    private float coins;
+
+    // constructor 
+    public Wallet(int coins){
+        this.coins = coins;
+    }
+
+    // rents / buys a manhwa
+    public boolean deductCoins(int amount) {
+        if (coins < amount) return false;
+        coins -= amount;
+        return true;
+    }
+
+    // user purchase a coin
+    public void addCoins(int amount) {
+        coins += amount;
+    }
+
+}
+
+public class Manhwa {
+    private String title;
+
+    public Manhwa(String title) {
+        this.title = title;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+}
+
+
+
+public abstract class Access {
+    protected Manhwa manhwa;
+
+    public Access(Manhwa manhwa) {
+        this.manhwa = manhwa;
+    }
+
+    // empty "promise" doesnt have a value but every class 
+    // that inherits acess has the ability to read a manhwa 
+    public abstract boolean isValid();
+}
+
+
+    public class PermanentAccess extends Access {
+
+        public PermanentAccess(Manhwa manhwa) {
+            super(manhwa);
+        }
+
+        @Override
+        public boolean isValid() {
+            return true;
+        }
+    }
+
+
+    public class RentalAccess extends Access {
+        private LocalDateTime expiry;
+
+        public RentalAccess(int hours, Manhwa manhwa) {
+            super(manhwa);
+            this.expiry = LocalDateTime.now().plusHours(hours);
+        }
+
+        // default value for hr would this work regardless of mismatch in params?
+        pubic RentalAccess() {this(72);}
+
+        // fix 
+        public RentalAccess(Manhwa manhwa) {this(72, manhwa);}
+
+        @Override
+        public boolean isValid() {
+            return LocalDateTime.now().isBefore(expiry);
+        }
+    }
+
+
+public class Library {
+    private List<Access> accesses = new ArrayList<>();
+
+    public void addAccess(Access access) {
+        accesses.add(access);
+    }
+
+    public boolean hasValidAccess(Manhwa manhwa) {
+        for (Access a : accesses) {
+            if (a.manhwa == manhwa && a.isValid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+public abstract class Transaction {
+    protected User user;
+
+    public Transaction(User user) {
+        this.user = user;
+    }
+
+    public abstract boolean execute();
+}
+
+
+public class UnlockManhwa extends Transaction {
+    private int cost;
+    private Access access;
+
+    public UnlockManhwa(User user, int cost, Access access) {
+        super(user);
+        this.cost = cost;
+        this.access = access;
+    }
+
+    @Override
+    public boolean execute() {
+
+        // prevent buying twice for a user 
+        if (user.getLibrary().hasValidAccess(access.manhwa)) return false;
+
+
+        // if user has insuffecient coins then
+        // user.getWallet().deductCoins(cost) =  true -> !true
+        if (!user.getWallet().deductCoins(cost)) return false;
+        user.getLibrary().addAccess(access);
+        return true;
+    }
+}
