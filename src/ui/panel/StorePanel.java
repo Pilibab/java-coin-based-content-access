@@ -233,7 +233,7 @@ public class StorePanel extends JPanel {
             try {
                 ImageIcon coverImage = loadImage(manhwa.getCoverImageUrl());
                 if (coverImage != null) {
-                    Image scaledImage = coverImage.getImage().getScaledInstance(70,90, Image.SCALE_SMOOTH);
+                    Image scaledImage = coverImage.getImage().getScaledInstance(100,130, Image.SCALE_SMOOTH);
                     imageLabel.setIcon(new ImageIcon(scaledImage));
                 } else {
                     imageLabel.setText("📖");
