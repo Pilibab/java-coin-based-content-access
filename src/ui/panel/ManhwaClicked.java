@@ -27,12 +27,34 @@ public class ManhwaClicked extends JPanel {
     }
 
     private void initComponents() {
-        // 1. Title
+        // === TITLE ROW WITH BACK BUTTON ===
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+        titlePanel.setOpaque(false);
+        titlePanel.setMaximumSize(new Dimension(640, 40));
+        
+        // Back button
+        JButton backButton = new JButton("← Back");
+        backButton.setPreferredSize(new Dimension(80, 30));
+        backButton.setMaximumSize(new Dimension(80, 30));
+        backButton.setBackground(new Color(220, 220, 220));
+        backButton.setFocusPainted(false);
+        
+        // Title
         JLabel titleLabel = new JLabel(manhwa.getTitle());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        add(titleLabel);
+        
+        // Layout: back button on left, title centered, space on right
+        titlePanel.add(Box.createRigidArea(new Dimension(20, 0))); // Left padding
+        titlePanel.add(backButton);
+        titlePanel.add(Box.createHorizontalGlue());
+        titlePanel.add(titleLabel);
+        titlePanel.add(Box.createHorizontalGlue());
+        titlePanel.add(Box.createRigidArea(new Dimension(100, 0))); // Right space to balance
+        
+        add(titlePanel);
         add(Box.createRigidArea(new Dimension(0, 20)));
+
 
         // 2. Image
         try {
@@ -181,6 +203,7 @@ public class ManhwaClicked extends JPanel {
         dateWrapper.setMaximumSize(new Dimension(600, 30));
         add(dateWrapper);
     }
+
     private void registerListeners() {
         // listeners will go here
     }
