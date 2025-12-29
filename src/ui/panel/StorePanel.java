@@ -136,7 +136,7 @@ public class StorePanel extends JPanel {
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(65, 28));
+        btn.setPreferredSize(new Dimension(74, 28));
        
         btn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
