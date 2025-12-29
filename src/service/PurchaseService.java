@@ -13,7 +13,16 @@ public class PurchaseService {
     public double calculateCoinValue(Manhwa m) {
         int totalManhwaCount = 200;
 
-        int chapter_count = Integer.parseInt(m.getChapters());
+        String chapters = m.getChapters(); // Assuming this returns a String
+        int chapter_count = 0;
+        
+        // checks if chapter count is unknown 
+        if ("unknown".equalsIgnoreCase(chapters)) {
+            // statusText = "Status: Ongoing";
+            chapter_count = 0;
+        } else {
+            chapter_count = Integer.parseInt(m.getChapters());
+        }
         // Popularity Score (Inverted Rank)
         double rankScore = (double) (totalManhwaCount - m.getRank()) / totalManhwaCount * 20;
 
