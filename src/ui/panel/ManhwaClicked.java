@@ -23,7 +23,7 @@ public class ManhwaClicked extends JPanel {
         // BoxLayout.Y_AXIS stacks components vertically
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         // Optional: adds padding around the edges of the panel
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     }
 
     private void initComponents() {
@@ -117,6 +117,20 @@ public class ManhwaClicked extends JPanel {
         buttonPanel.setMaximumSize(new Dimension(640, 50));
         add(buttonPanel); 
         
+        // Add this right after you've created the buttons in initComponents()
+        buyButton.addActionListener(e -> {
+            System.out.println("Buy button clicked for: " + manhwa.getTitle());
+            // Call your service logic here
+            // ! NULL for now 
+            purchaseService.buyManhwa(null, manhwa);
+        });
+
+        rentButton.addActionListener(e -> {
+            System.out.println("Rent button clicked for: " + manhwa.getTitle());
+            // Call your rental logic here
+            // ! NULL for now 
+            purchaseService.rentManhwa(null, manhwa);
+        });
         add(Box.createRigidArea(new Dimension(0, 15)));
 
         // 3. Synopsis
