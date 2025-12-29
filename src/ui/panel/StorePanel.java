@@ -183,8 +183,8 @@ public class StorePanel extends JPanel {
         updateTopTenImage();
        
         // Navigation buttons
-        JButton prevBtn = new JButton("<");
-        JButton nextBtn = new JButton(">");
+        JButton prevBtn = new JButton("‹");
+        JButton nextBtn = new JButton("›");
        
         styleCarouselButton(prevBtn);
         styleCarouselButton(nextBtn);
