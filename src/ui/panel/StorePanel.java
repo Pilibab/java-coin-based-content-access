@@ -116,7 +116,7 @@ public class StorePanel extends JPanel {
         storeBtn.setEnabled(false);
     
         libraryBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
+            // JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
 
             MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
             frame.showUserLibrary(currentUser);

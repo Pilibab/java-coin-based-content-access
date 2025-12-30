@@ -96,7 +96,6 @@ public class LibraryPanel extends JPanel {
 
         JButton storeBtn = createTopBarButton("Store");
         JButton libraryBtn = createTopBarButton("Library");
-        JButton cartBtn = createTopBarButton("Cart");
 
         //the Library button is disabled
         libraryBtn.setEnabled(false);
@@ -113,7 +112,6 @@ public class LibraryPanel extends JPanel {
 
         rightPanel.add(storeBtn);
         rightPanel.add(libraryBtn);
-        rightPanel.add(cartBtn);
         rightPanel.add(Box.createHorizontalStrut(10));
         rightPanel.add(coinsLabel);
 
