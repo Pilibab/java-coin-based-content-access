@@ -21,4 +21,8 @@ public class Wallet {
         coins += amount;
     }
 
+    // Getter method for coins
+    public float getCoins() {
+        return coins;
+    }
 }

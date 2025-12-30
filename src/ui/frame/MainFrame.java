@@ -1,22 +1,36 @@
 package ui.frame;
 
-import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
 import service.PurchaseService;
-import ui.panel.ManhwaClicked; // Make sure to import your panel
-import domain.content.Manhwa;   // Import the Manhwa model
+import ui.panel.ManhwaClicked;
+import ui.panel.StorePanel;    // Added this back in
+import domain.content.Manhwa;
 
 public class MainFrame extends JFrame {
+    private PurchaseService purchaseService;
+
 
     public MainFrame(PurchaseService service, Manhwa manhwa) {
-        setTitle("Manhwa Store");
+        this.purchaseService = service;
+        
+        setTitle("Manhwa Store - Manhwa.to");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
         setResizable(false);
-        setSize(640,720);
+        setSize(640, 720);
+        setLocationRelativeTo(null);
 
-        // Frame hosts panels
+        // Set light theme colors (Apple-style white)
+        getContentPane().setBackground(new Color(248, 248, 248));
+
+        // DECISION: Which panel to show? 
+        // If you want the clicked Manhwa view:
         setContentPane(new ManhwaClicked(service, manhwa));
+        
+        // If you wanted the Store view instead, you would use:
+        // setContentPane(new StorePanel(service));
 
-        // pack(); // size based on content
-        setLocationRelativeTo(null); // center screen
+        setVisible(true);
     }
 }
