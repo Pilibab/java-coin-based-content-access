@@ -1,12 +1,21 @@
 package ui.frame;
 
+// class imports 
 import domain.user.User;
+
+
 import java.awt.*;
 import javax.swing.*;
+
+// logics 
 import service.PurchaseService;
+
+// panel imports
 import ui.panel.ManhwaClicked;
-import ui.panel.StorePanel;    // Added this back in
+import ui.panel.StorePanel;    
 import domain.content.Manhwa;
+import ui.panel.LibraryPanel;
+
 
 public class MainFrame extends JFrame {
 
@@ -34,12 +43,21 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
+
+    // ================== Nav methods ==============================
     public void showManhwaDetails(Manhwa manhwa) {
         ManhwaClicked detailsPanel =
                 new ManhwaClicked(purchaseService, manhwa, this);
 
         mainPanel.add(detailsPanel, "DETAILS");
         cardLayout.show(mainPanel, "DETAILS");
+    }
+
+    public void showUserLibrary(User user) {
+        LibraryPanel libPanel = new LibraryPanel(user);
+
+        mainPanel.add(libPanel, "LIBRARY");
+        cardLayout.show(mainPanel, "LIBRARY");
     }
 
     public void showStore() {

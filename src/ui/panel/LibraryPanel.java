@@ -9,8 +9,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+// import java.awt.event.ActionEvent;
+// import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
@@ -371,9 +371,9 @@ public class LibraryPanel extends JPanel {
         return card;
     }
 
-    private void updateCoinsDisplay() {
-        coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
-    }
+    // private void updateCoinsDisplay() {
+    //     coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
+    // }
 
     private ImageIcon loadImage(String imageUrl) {
         if (imageUrl == null || imageUrl.trim().isEmpty()) {

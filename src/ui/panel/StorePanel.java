@@ -9,7 +9,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.swing.*;
+// import javax.swing.*;
 import service.PurchaseService;
 import ui.frame.MainFrame;
 import domain.content.Manhwa;
@@ -36,16 +36,19 @@ public class StorePanel extends JPanel {
 
     public StorePanel(PurchaseService purchaseService, MainFrame frame) {
         this.purchaseService = purchaseService;
+
+        // ! move this to purchase service
         this.currentUser = new User(1000);
         this.frame = frame;
-       
+
         setLayout(new BorderLayout());
         setBackground(new Color(248, 248, 248));
         setPreferredSize(new Dimension(640, 720));
-       
-        CsvOpener opener = new CsvOpener();
-        manhwaList = opener.getDb();
-       
+
+        // ! should the store panel really be concerned with getting the manhwa?
+        manhwaList = CsvOpener.getDb();
+
+    
         initComponents();
     }
 
@@ -116,7 +119,7 @@ public class StorePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
 
             MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
-            frame.showLibrary(currentUser);
+            frame.showUserLibrary(currentUser);
         });
     
         rightPanel.add(storeBtn);
@@ -499,26 +502,26 @@ public class StorePanel extends JPanel {
         return null;
     }
 
-    private void handlePurchase(Manhwa manhwa, boolean permanent) {
-        boolean success = permanent ?
-            purchaseService.buyManhwa(currentUser, manhwa) :
-            purchaseService.rentManhwa(currentUser, manhwa);
-       
-        if (success) {
-            updateCoinsDisplay();
-            JOptionPane.showMessageDialog(this,
-                "Successfully " + (permanent ? "purchased" : "rented") + " " + manhwa.getTitle(),
-                "Success", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this,
-                "Purchase failed. Check your coins or ownership status.",
-                "Failed", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-   
-    private void updateCoinsDisplay() {
-        coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
-    }
+    // private void handlePurchase(Manhwa manhwa, boolean permanent) {
+    //     boolean success = permanent ?
+    //         purchaseService.buyManhwa(currentUser, manhwa) :
+    //         purchaseService.rentManhwa(currentUser, manhwa);
+    
+    //     if (success) {
+    //         updateCoinsDisplay();
+    //         JOptionPane.showMessageDialog(this,
+    //             "Successfully " + (permanent ? "purchased" : "rented") + " " + manhwa.getTitle(),
+    //             "Success", JOptionPane.INFORMATION_MESSAGE);
+    //     } else {
+    //         JOptionPane.showMessageDialog(this,
+    //             "Purchase failed. Check your coins or ownership status.",
+    //             "Failed", JOptionPane.ERROR_MESSAGE);
+    //     }
+    // }
+
+    // private void updateCoinsDisplay() {
+    //     coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
+    // }
    
     private String truncateText(String text, int length) {
         if (text == null) return "";
