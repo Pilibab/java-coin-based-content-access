@@ -9,16 +9,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
-// import javax.swing.*;
-import service.PurchaseService;
 import ui.frame.MainFrame;
 import domain.content.Manhwa;
 import domain.user.User;
-import app.CsvOpener;
 
 
 public class StorePanel extends JPanel {
-    private final PurchaseService purchaseService;
     private final MainFrame frame;
 
     private List<Manhwa> manhwaList;
@@ -34,11 +30,10 @@ public class StorePanel extends JPanel {
     private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
 
 
-    public StorePanel(PurchaseService purchaseService, MainFrame frame) {
-        this.purchaseService = purchaseService;
+    public StorePanel(MainFrame frame, User user, List <Manhwa> manhwas) {
 
         // ! move this to purchase service
-        this.currentUser = new User(1000);
+        this.currentUser = user;
         this.frame = frame;
 
         setLayout(new BorderLayout());
@@ -46,7 +41,7 @@ public class StorePanel extends JPanel {
         setPreferredSize(new Dimension(640, 720));
 
         // ! should the store panel really be concerned with getting the manhwa?
-        manhwaList = CsvOpener.getDb();
+        manhwaList = manhwas;
 
     
         initComponents();
@@ -414,7 +409,7 @@ public class StorePanel extends JPanel {
     
         card.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                frame.showManhwaDetails(manhwa);
+                frame.showManhwaDetails(manhwa, currentUser);
             }
             public void mouseEntered(MouseEvent e) {
                 card.setBackground(new Color(250, 250, 250));

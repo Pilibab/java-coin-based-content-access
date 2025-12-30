@@ -4,17 +4,17 @@ package domain.user;
 public class User {
     private Wallet wallet;
     private Library library;
+    private String name;
 
-    public User(int coins) {
+    public User(String name,int coins) {
         this.wallet = new Wallet(coins);
         this.library = new Library();
+        this.name = name;
     }
 
-    public User() { 
-        // default coin... would this work?
-        this(100);
+    public String getName() {
+        return name;
     }
-
     public Wallet getWallet() {
         return wallet;
     }

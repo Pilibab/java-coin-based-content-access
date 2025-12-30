@@ -41,20 +41,11 @@ public class PurchaseService {
         return (rankScore + chapterScore + ratingScore);
     }
 
-    /**
-     * Calculates the cost to rent the Manhwa for a limited time (e.g., 72 hours).
-     * Usually set at 50% of the total calculated value.
-     * * @param manhwa_cost The total dynamic value calculated by calculateCoinValue.
-     * @return The rental cost as a float.
-     */
     double getActualCOst(double manhwa_cost, String purchase_type) {
-        if (purchase_type == "rent") {
-            // 0.5f represents 50% of the total value
-            return (manhwa_cost * 0.5);
-        } else {
+        if ("rent".equalsIgnoreCase(purchase_type)) {
             return manhwa_cost * 0.5;
         }
-
+        return manhwa_cost;
     }
 
     public boolean rentManhwa(User user, Manhwa manhwa) {
@@ -72,7 +63,4 @@ public class PurchaseService {
         Transaction tx = new UnlockManhwa(user, PERMANENT_COST, access);
         return tx.execute();
     }
-
-    
-    
 }

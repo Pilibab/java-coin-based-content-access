@@ -6,17 +6,25 @@ import service.PurchaseService;
 import ui.frame.MainFrame;
 import domain.content.Manhwa;
 
+
+import domain.user.User;;
+
 public class ManhwaClicked extends JPanel {
 
     private final PurchaseService purchaseService;
     private final Manhwa manhwa;
     private MainFrame frame;
+    private User user;
 
     public ManhwaClicked(PurchaseService purchaseService, 
-        Manhwa manhwa, MainFrame frame) {
+                            Manhwa manhwa, 
+                            User user,
+                            MainFrame frame) 
+    {
         this.purchaseService = purchaseService;
         this.manhwa = manhwa;
         this.frame = frame;
+        this.user = user;
 
         initLayout();
         initComponents();
@@ -146,17 +154,38 @@ public class ManhwaClicked extends JPanel {
         
         // Add this right after you've created the buttons in initComponents()
         buyButton.addActionListener(e -> {
+
+            if (user == null) {
+                System.out.println("ERROR: user is null");
+                return;
+            }
+            System.out.println("user: " + user.getName());
+
+            System.out.println("user = " + user);
+            System.out.println("service = " + purchaseService);
+            System.out.println("manhwa = " + manhwa);
+
             System.out.println("Buy button clicked for: " + manhwa.getTitle());
             // Call your service logic here
             // ! NULL for now 
-            purchaseService.buyManhwa(null, manhwa);
+            purchaseService.buyManhwa(user, manhwa);
         });
 
         rentButton.addActionListener(e -> {
+            if (user == null) {
+                System.out.println("ERROR: user is null");
+                return;
+            }
+            
+            System.out.println("user: " + user.getName());
+            System.out.println("user = " + user);
+            System.out.println("service = " + purchaseService);
+            System.out.println("manhwa = " + manhwa);
+
             System.out.println("Rent button clicked for: " + manhwa.getTitle());
             // Call your rental logic here
             // ! NULL for now 
-            purchaseService.rentManhwa(null, manhwa);
+            purchaseService.rentManhwa(user, manhwa);
         });
         add(Box.createRigidArea(new Dimension(0, 15)));
 

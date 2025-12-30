@@ -6,6 +6,7 @@ import domain.user.User;
 
 import java.awt.*;
 import javax.swing.*;
+import java.util.List;
 
 // logics 
 import service.PurchaseService;
@@ -24,14 +25,15 @@ public class MainFrame extends JFrame {
 
     private PurchaseService purchaseService;
     private StorePanel storePanel;
+    private User user;
 
-    public MainFrame(PurchaseService purchaseService) {
+    public MainFrame(PurchaseService purchaseService, User user, List<Manhwa> manhwa) {
         this.purchaseService = purchaseService;
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        storePanel = new StorePanel(purchaseService, this);
+        storePanel = new StorePanel(this, user, manhwa);
 
         mainPanel.add(storePanel, "STORE");
 
@@ -45,9 +47,9 @@ public class MainFrame extends JFrame {
 
 
     // ================== Nav methods ==============================
-    public void showManhwaDetails(Manhwa manhwa) {
+    public void showManhwaDetails(Manhwa manhwa, User user) {
         ManhwaClicked detailsPanel =
-                new ManhwaClicked(purchaseService, manhwa, this);
+                new ManhwaClicked(purchaseService, manhwa, user, this);
 
         mainPanel.add(detailsPanel, "DETAILS");
         cardLayout.show(mainPanel, "DETAILS");
