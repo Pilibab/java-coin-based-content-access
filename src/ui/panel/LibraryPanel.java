@@ -1,6 +1,8 @@
 package ui.panel;
 
 import domain.content.Manhwa;
+import domain.content.access.Access;
+import domain.content.access.PermanentAccess;
 import domain.user.User;
 import ui.frame.MainFrame;
 
@@ -9,13 +11,13 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-// import java.awt.event.ActionEvent;
-// import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -23,236 +25,247 @@ public class LibraryPanel extends JPanel {
     private User currentUser;
     private JLabel coinsLabel;
     private JPanel gridPanel;
-    private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>(); //cache for loaded images
+    private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
     private JTextField searchField;
     private static final String SEARCH_PLACEHOLDER = "Search Your Library";
     private int currentGridPage = 0;
     private final int ITEMS_PER_PAGE = 4;
     private JPanel navPanel;
 
+    // Color constants
+    private static final Color PRIMARY_BLUE = new Color(20, 108, 148);
+    private static final Color SECONDARY_BLUE = new Color(30, 118, 158);
+    private static final Color BACKGROUND_GRAY = new Color(248, 248, 248);
+    private static final Color CARD_BACKGROUND = Color.WHITE;
+    private static final Color BORDER_GRAY = new Color(230, 230, 230);
+    private static final Color TEXT_PRIMARY = new Color(33, 33, 33);
+    private static final Color TEXT_SECONDARY = new Color(120, 120, 120);
+
     public LibraryPanel(User user) {
         this.currentUser = user;
-
-        setLayout(new BorderLayout());
-        setBackground(new Color(248, 248, 248));
-        setPreferredSize(new Dimension(640, 720));
-
+        initializePanel();
         initComponents();
     }
 
+    private void initializePanel() {
+        setLayout(new BorderLayout());
+        setBackground(BACKGROUND_GRAY);
+        setPreferredSize(new Dimension(640, 720));
+    }
+
     private void initComponents() {
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBackground(new Color(248, 248, 248));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));   //change: 15, 20, 15, 20
-        mainPanel.setPreferredSize(new Dimension(640, 720));
-        mainPanel.setMaximumSize(new Dimension(640, 720));
-
+        JPanel mainPanel = createMainPanel();
+        
         mainPanel.add(createTopBar());
-        mainPanel.add(Box.createVerticalStrut(8)); //change from 15
-
-        JLabel header = new JLabel("Your Library");
-        header.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        header.setForeground(new Color(33, 33, 33));
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        headerPanel.setOpaque(false);
-        headerPanel.add(header);
-        headerPanel.setMaximumSize(new Dimension(600, 30));
-        mainPanel.add(headerPanel);
         mainPanel.add(Box.createVerticalStrut(8));
-
-        // Search field placed under the "Your Library" header
-        mainPanel.add(createSearchHeader());
+        mainPanel.add(createHeaderPanel());
+        mainPanel.add(Box.createVerticalStrut(8));
+        mainPanel.add(createSearchPanel());
         mainPanel.add(Box.createVerticalStrut(10));
-
-        // Library grid directly below the search bar
         mainPanel.add(createLibraryGrid());
         mainPanel.add(Box.createVerticalStrut(15));
+        
         navPanel = createNavigationPanel();
         mainPanel.add(navPanel);
 
+        JPanel wrapper = createWrapperPanel();
+        wrapper.add(mainPanel, BorderLayout.CENTER);
+        add(wrapper, BorderLayout.CENTER);
+    }
+
+    private JPanel createMainPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(BACKGROUND_GRAY);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        panel.setPreferredSize(new Dimension(640, 720));
+        panel.setMaximumSize(new Dimension(640, 720));
+        return panel;
+    }
+
+    private JPanel createWrapperPanel() {
         JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBackground(new Color(248, 248, 248));
+        wrapper.setBackground(BACKGROUND_GRAY);
         wrapper.setPreferredSize(new Dimension(640, 720));
         wrapper.setMaximumSize(new Dimension(640, 720));
-        wrapper.add(mainPanel, BorderLayout.CENTER);
-
-        add(wrapper, BorderLayout.CENTER);
+        return wrapper;
     }
 
     private JPanel createTopBar() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(20, 108, 148));
-        panel.setMaximumSize(new Dimension(610, 45));  //change from 600 50
-        panel.setPreferredSize(new Dimension(610, 45)); //""
-        panel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12)); //10 15 10 15
+        panel.setBackground(PRIMARY_BLUE);
+        panel.setMaximumSize(new Dimension(610, 45));
+        panel.setPreferredSize(new Dimension(610, 45));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
 
+        panel.add(createAppNameLabel(), BorderLayout.WEST);
+        panel.add(createTopBarRightPanel(), BorderLayout.EAST);
+
+        return panel;
+    }
+
+    private JLabel createAppNameLabel() {
         JLabel appName = new JLabel("Manhwa db");
-        appName.setFont(new Font("Segoe UI", Font.BOLD, 18)); //change from 20
+        appName.setFont(new Font("Segoe UI", Font.BOLD, 18));
         appName.setForeground(Color.WHITE);
+        return appName;
+    }
 
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0)); //change from 10, 0
+    private JPanel createTopBarRightPanel() {
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightPanel.setOpaque(false);
 
         JButton storeBtn = createTopBarButton("Store");
         JButton libraryBtn = createTopBarButton("Library");
-
-        //the Library button is disabled
+        
         libraryBtn.setEnabled(false);
+        storeBtn.addActionListener(e -> navigateToStore());
 
-        // store button shoukd be enabled and navigate back to store
-        storeBtn.addActionListener(e -> {
-            MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
-            frame.showStore();
-        });
-
-        coinsLabel = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
-        coinsLabel.setFont(new Font("Segoe UI", Font.BOLD, 13)); //change from 14
-        coinsLabel.setForeground(Color.WHITE);
+        coinsLabel = createCoinsLabel();
 
         rightPanel.add(storeBtn);
         rightPanel.add(libraryBtn);
         rightPanel.add(Box.createHorizontalStrut(10));
         rightPanel.add(coinsLabel);
 
-        panel.add(appName, BorderLayout.WEST);
-        panel.add(rightPanel, BorderLayout.EAST);
-
-        return panel;
+        return rightPanel;
     }
 
-    private JPanel createSearchHeader() {
+    private JLabel createCoinsLabel() {
+        JLabel label = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
+        label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private void navigateToStore() {
+        MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+        frame.showStore();
+    }
+
+    private JButton createTopBarButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(SECONDARY_BLUE);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(74, 28));
+        btn.setMaximumSize(new Dimension(70, 30));
+        return btn;
+    }
+
+    private JPanel createHeaderPanel() {
+        JLabel header = new JLabel("Your Library");
+        header.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.setForeground(TEXT_PRIMARY);
+        
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        headerPanel.setOpaque(false);
+        headerPanel.add(header);
+        headerPanel.setMaximumSize(new Dimension(600, 30));
+        
+        return headerPanel;
+    }
+
+    private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         panel.setOpaque(false);
 
-        searchField = new JTextField(20);
-        searchField.setPreferredSize(new Dimension(320,  thirtyTwo()));
-        searchField.setBackground(new Color(240, 240, 240));
-        searchField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        searchField.setText(SEARCH_PLACEHOLDER);
-        searchField.setForeground(Color.GRAY);
+        searchField = createSearchField();
+        panel.add(searchField);
+        
+        return panel;
+    }
 
-        // Placeholder behavior
-        searchField.addFocusListener(new FocusAdapter() {
+    private JTextField createSearchField() {
+        JTextField field = new JTextField(20);
+        field.setPreferredSize(new Dimension(320, 32));
+        field.setBackground(new Color(240, 240, 240));
+        field.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        field.setText(SEARCH_PLACEHOLDER);
+        field.setForeground(Color.GRAY);
+
+        addSearchFieldListeners(field);
+        
+        return field;
+    }
+
+    private void addSearchFieldListeners(JTextField field) {
+        field.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (SEARCH_PLACEHOLDER.equals(searchField.getText())) {
-                    searchField.setText("");
-                    searchField.setForeground(Color.BLACK);
+                if (SEARCH_PLACEHOLDER.equals(field.getText())) {
+                    field.setText("");
+                    field.setForeground(Color.BLACK);
                 }
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (searchField.getText().trim().isEmpty()) {
-                    searchField.setText(SEARCH_PLACEHOLDER);
-                    searchField.setForeground(Color.GRAY);
+                if (field.getText().trim().isEmpty()) {
+                    field.setText(SEARCH_PLACEHOLDER);
+                    field.setForeground(Color.GRAY);
                     updateGrid();
                 }
             }
         });
 
-        // Live filtering
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-            private void changed() {
-                String q = searchField.getText();
-                if (q == null) q = "";
-                q = q.trim();
-                if (q.isEmpty() || SEARCH_PLACEHOLDER.equals(q)) {
-                    updateGrid();
-                    return;
-                }
-
-                List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
-                List<Manhwa> filtered = new ArrayList<>();
-                if (owned != null) {
-                    String low = q.toLowerCase();
-                    for (Manhwa m : owned) {
-                        String title = m.getTitle() == null ? "" : m.getTitle();
-                        String tags = m.getTags() == null ? "" : m.getTags();
-                        if (title.toLowerCase().contains(low) || tags.toLowerCase().contains(low)) {
-                            filtered.add(m);
-                        }
-                    }
-                }
-
-                refreshLibraryGrid(filtered);
-            }
-
+        field.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) { changed(); }
-
+            public void insertUpdate(DocumentEvent e) { performSearch(); }
+            
             @Override
-            public void removeUpdate(DocumentEvent e) { changed(); }
-
+            public void removeUpdate(DocumentEvent e) { performSearch(); }
+            
             @Override
-            public void changedUpdate(DocumentEvent e) { changed(); }
+            public void changedUpdate(DocumentEvent e) { performSearch(); }
         });
-
-        panel.add(searchField);
-        return panel;
     }
 
-    // Helper used in preferred size to avoid magic number inlined errors
-    private int thirtyTwo() { return 32; }
-
-    private void refreshLibraryGrid(List<Manhwa> filteredList) {
-        gridPanel.removeAll();
-
-        if (filteredList == null || filteredList.isEmpty()) {
-            gridPanel.setLayout(new BorderLayout());
-            JPanel emptyPanel = new JPanel(new BorderLayout());
-            emptyPanel.setOpaque(false);
-            JLabel emptyLabel = new JLabel("No manhwa found", SwingConstants.CENTER);
-            emptyLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-            emptyLabel.setForeground(new Color(120, 120, 120));
-            emptyPanel.add(emptyLabel, BorderLayout.CENTER);
-            gridPanel.add(emptyPanel, BorderLayout.CENTER);
-            if (navPanel != null) navPanel.setVisible(false);
-        } else {
-                // Show filtered results in 2x2 so cards keep consistent heights
-                gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
-                int shown = 0;
-                for (Manhwa m : filteredList) {
-                    if (shown >= ITEMS_PER_PAGE) break;
-                    gridPanel.add(createOwnedCard(m));
-                    shown++;
-                }
-                // Fill remaining slots to keep layout consistent
-                for (int i = shown; i < ITEMS_PER_PAGE; i++) {
-                    JPanel empty = new JPanel();
-                    empty.setBackground(new Color(250, 250, 250));
-                    empty.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1));
-                    gridPanel.add(empty);
-                }
-            if (navPanel != null) navPanel.setVisible(false);
+    private void performSearch() {
+        String query = searchField.getText();
+        if (query == null) query = "";
+        query = query.trim();
+        
+        if (query.isEmpty() || SEARCH_PLACEHOLDER.equals(query)) {
+            updateGrid();
+            return;
         }
 
-        // no wrapper re-attachment needed (gridPanel added directly to container)
-
-        gridPanel.revalidate();
-        gridPanel.repaint();
+        List<Manhwa> filtered = filterOwnedManhwa(query);
+        refreshLibraryGrid(filtered);
     }
 
-    private JButton createTopBarButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 11)); //change from 12
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(30, 118, 158)); 
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(74, 28)); // change from 70, 30
-        btn.setMaximumSize(new Dimension(70, 30));
-        return btn;
+    private List<Manhwa> filterOwnedManhwa(String query) {
+        List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
+        List<Manhwa> filtered = new ArrayList<>();
+        
+        if (owned != null) {
+            String lowQuery = query.toLowerCase();
+            for (Manhwa m : owned) {
+                if (matchesSearch(m, lowQuery)) {
+                    filtered.add(m);
+                }
+            }
+        }
+        
+        return filtered;
     }
+
+    private boolean matchesSearch(Manhwa manhwa, String query) {
+        String title = manhwa.getTitle() == null ? "" : manhwa.getTitle();
+        String tags = manhwa.getTags() == null ? "" : manhwa.getTags();
+        return title.toLowerCase().contains(query) || tags.toLowerCase().contains(query);
+    }
+
     private JPanel createLibraryGrid() {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
         container.setMaximumSize(new Dimension(600, 460));
         container.setPreferredSize(new Dimension(600, 460));
 
-        // 2 rows x 2 columns layout (shows 4 items per page)
         gridPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         gridPanel.setOpaque(false);
         gridPanel.setMaximumSize(new Dimension(600, 460));
@@ -270,66 +283,125 @@ public class LibraryPanel extends JPanel {
         List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
 
         if (owned == null || owned.isEmpty()) {
-            // Show a single full-area empty state
-            gridPanel.setLayout(new BorderLayout());
-            JPanel emptyPanel = new JPanel(new BorderLayout());
-            emptyPanel.setOpaque(false);
-            JLabel emptyLabel = new JLabel("Your library is empty", SwingConstants.CENTER);
-            emptyLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            emptyLabel.setForeground(new Color(120, 120, 120));
-            emptyPanel.add(emptyLabel, BorderLayout.CENTER);
-            gridPanel.add(emptyPanel, BorderLayout.CENTER);
+            displayEmptyLibraryState();
         } else {
-            // Ensure 2x2 grid for the current page
-            gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
-
-            int startIdx = currentGridPage * ITEMS_PER_PAGE;
-            int endIdx = Math.min(startIdx + ITEMS_PER_PAGE, owned.size());
-
-            int shown = 0;
-            for (int i = startIdx; i < endIdx; i++) {
-                gridPanel.add(createOwnedCard(owned.get(i)));
-                shown++;
-            }
-
-            // Fill remaining slots with empty panels up to 4 slots
-            for (int i = shown; i < ITEMS_PER_PAGE; i++) {
-                JPanel empty = new JPanel();
-                empty.setBackground(new Color(250, 250, 250));
-                empty.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1));
-                gridPanel.add(empty);
-            }
+            displayLibraryContent(owned);
         }
 
         gridPanel.revalidate();
         gridPanel.repaint();
+        updateNavigationVisibility(owned);
+    }
 
-        // Show/hide navigation depending on number of owned items
-        if (navPanel != null) {
-            if (owned == null || owned.size() <= ITEMS_PER_PAGE) {
-                navPanel.setVisible(false);
-            } else {
-                navPanel.setVisible(true);
-            }
+    private void displayEmptyLibraryState() {
+        gridPanel.setLayout(new BorderLayout());
+        JPanel emptyPanel = createEmptyStatePanel("Your library is empty");
+        gridPanel.add(emptyPanel, BorderLayout.CENTER);
+    }
+
+    private JPanel createEmptyStatePanel(String message) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        
+        JLabel label = new JLabel(message, SwingConstants.CENTER);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        label.setForeground(TEXT_SECONDARY);
+        
+        panel.add(label, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private void displayLibraryContent(List<Manhwa> owned) {
+        gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
+
+        int startIdx = currentGridPage * ITEMS_PER_PAGE;
+        int endIdx = Math.min(startIdx + ITEMS_PER_PAGE, owned.size());
+
+        int shown = 0;
+        for (int i = startIdx; i < endIdx; i++) {
+            gridPanel.add(createManhwaCard(owned.get(i)));
+            shown++;
+        }
+
+        fillEmptySlots(shown);
+    }
+
+    private void fillEmptySlots(int filledCount) {
+        for (int i = filledCount; i < ITEMS_PER_PAGE; i++) {
+            gridPanel.add(createEmptySlot());
         }
     }
 
-    private JPanel createOwnedCard(Manhwa manhwa) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
+    private JPanel createEmptySlot() {
+        JPanel empty = new JPanel();
+        empty.setBackground(new Color(250, 250, 250));
+        empty.setBorder(BorderFactory.createLineBorder(BORDER_GRAY, 1));
+        return empty;
+    }
+
+    private void updateNavigationVisibility(List<Manhwa> owned) {
+        if (navPanel != null) {
+            navPanel.setVisible(owned != null && owned.size() > ITEMS_PER_PAGE);
+        }
+    }
+
+    private void refreshLibraryGrid(List<Manhwa> filteredList) {
+        gridPanel.removeAll();
+
+        if (filteredList == null || filteredList.isEmpty()) {
+            displayFilteredEmptyState();
+        } else {
+            displayFilteredContent(filteredList);
+        }
+
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
+
+    private void displayFilteredEmptyState() {
+        gridPanel.setLayout(new BorderLayout());
+        JPanel emptyPanel = createEmptyStatePanel("No manhwa found");
+        emptyPanel.getComponent(0).setFont(new Font("Segoe UI", Font.BOLD, 18));
+        gridPanel.add(emptyPanel, BorderLayout.CENTER);
+        
+        if (navPanel != null) navPanel.setVisible(false);
+    }
+
+    private void displayFilteredContent(List<Manhwa> filteredList) {
+        gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
+        
+        int shown = 0;
+        for (Manhwa m : filteredList) {
+            if (shown >= ITEMS_PER_PAGE) break;
+            gridPanel.add(createManhwaCard(m));
+            shown++;
+        }
+        
+        fillEmptySlots(shown);
+        
+        if (navPanel != null) navPanel.setVisible(false);
+    }
+
+    private JPanel createManhwaCard(Manhwa manhwa) {
+        JPanel card = new JPanel(new BorderLayout(10, 0));
+        card.setBackground(CARD_BACKGROUND);
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+            BorderFactory.createLineBorder(BORDER_GRAY, 1),
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
-        card.setPreferredSize(new Dimension(140, 220));
-        card.setMaximumSize(new Dimension(140, 220));
+        card.setPreferredSize(new Dimension(280, 220));
+        card.setMaximumSize(new Dimension(280, 220));
 
-        // Image panel with cover image (120x160)
+        card.add(createCoverImagePanel(manhwa), BorderLayout.WEST);
+        card.add(createInfoPanel(manhwa), BorderLayout.CENTER);
+
+        return card;
+    }
+
+    private JPanel createCoverImagePanel(Manhwa manhwa) {
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.setBackground(new Color(240, 240, 240));
-        imagePanel.setPreferredSize(new Dimension(120, 160));
-        imagePanel.setMaximumSize(new Dimension(120, 160));
+        imagePanel.setPreferredSize(new Dimension(100, 200));
         imagePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
         JLabel imageLabel = new JLabel();
@@ -338,53 +410,150 @@ public class LibraryPanel extends JPanel {
         try {
             ImageIcon coverImage = loadImage(manhwa.getCoverImageUrl());
             if (coverImage != null) {
-                Image scaledImage = coverImage.getImage().getScaledInstance(120, 160, Image.SCALE_SMOOTH);
+                Image scaledImage = coverImage.getImage().getScaledInstance(100, 200, Image.SCALE_SMOOTH);
                 imageLabel.setIcon(new ImageIcon(scaledImage));
             } else {
-                imageLabel.setText("📖");
-                imageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 48));
+                setFallbackImage(imageLabel);
             }
         } catch (Exception e) {
-            imageLabel.setText("📖");
-            imageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 48));
+            setFallbackImage(imageLabel);
         }
 
         imagePanel.add(imageLabel, BorderLayout.CENTER);
-        imagePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel titleLabel = new JLabel("<html><center>" + manhwa.getTitle() + "</center></html>");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        titleLabel.setForeground(new Color(33, 33, 33));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // Constrain title height so it doesn't push the button out of view
-        titleLabel.setPreferredSize(new Dimension(120, 44));
-        titleLabel.setMaximumSize(new Dimension(120, 44));
-        titleLabel.setVerticalAlignment(SwingConstants.TOP);
-
-        card.add(imagePanel);
-        card.add(Box.createVerticalStrut(8));
-        card.add(titleLabel);
-        card.add(Box.createVerticalStrut(10));
-
-        return card;
+        return imagePanel;
     }
 
-    // private void updateCoinsDisplay() {
-    //     coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
-    // }
+    private void setFallbackImage(JLabel label) {
+        label.setText("📖");
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 48));
+    }
+
+    private JPanel createInfoPanel(Manhwa manhwa) {
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setOpaque(false);
+
+        infoPanel.add(createTitleLabel(manhwa));
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(createStatusLabel(manhwa));
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(createRatingLabel(manhwa));
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(createRankLabel(manhwa));
+        infoPanel.add(Box.createVerticalGlue());
+        infoPanel.add(createAccessLabel(manhwa));
+
+        return infoPanel;
+    }
+
+    private JLabel createTitleLabel(Manhwa manhwa) {
+        JLabel titleLabel = new JLabel("<html>" + manhwa.getTitle() + "</html>");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titleLabel.setForeground(TEXT_PRIMARY);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        titleLabel.setMaximumSize(new Dimension(150, 60));
+        return titleLabel;
+    }
+
+    private JLabel createStatusLabel(Manhwa manhwa) {
+        String chapters = manhwa.getChapters();
+        String statusText;
+        
+        if ("unknown".equalsIgnoreCase(chapters)) {
+            statusText = "📖 Status: Ongoing";
+        } else {
+            statusText = "📖 Status: Completed (" + chapters + " ch)";
+        }
+        
+        JLabel statusLabel = new JLabel(statusText);
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        statusLabel.setForeground(TEXT_SECONDARY);
+        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return statusLabel;
+    }
+
+    private JLabel createRatingLabel(Manhwa manhwa) {
+        JLabel ratingLabel = new JLabel("⭐ " + String.format("%.1f", manhwa.getRating()));
+        ratingLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        ratingLabel.setForeground(new Color(255, 165, 0));
+        ratingLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return ratingLabel;
+    }
+
+    private JLabel createRankLabel(Manhwa manhwa) {
+        JLabel rankLabel = new JLabel("🏆 Rank #" + manhwa.getRank());
+        rankLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        rankLabel.setForeground(new Color(70, 130, 180));
+        rankLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return rankLabel;
+    }
+
+    private JLabel createAccessLabel(Manhwa manhwa) {
+        Access access = findManhwaAccess(manhwa);
+        JLabel accessLabel = new JLabel();
+        accessLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        accessLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        if (access instanceof PermanentAccess) {
+            accessLabel.setText("✓ Owned");
+            accessLabel.setForeground(new Color(76, 175, 80));
+        } else if (access != null) {
+            String timeRemaining = formatTimeRemaining(access);
+            accessLabel.setText("<html>⏱ Available<br>" + timeRemaining + "</html>");
+            accessLabel.setForeground(new Color(255, 152, 0));
+        } else {
+            accessLabel.setText("❌ Access Expired");
+            accessLabel.setForeground(new Color(244, 67, 54));
+        }
+
+        return accessLabel;
+    }
+
+    private Access findManhwaAccess(Manhwa manhwa) {
+        // Simply iterate through all accesses to find matching manhwa
+        for (Access a : currentUser.getLibrary().getAccesses()) {
+            if (a != null && a.getManhwa() != null && a.getManhwa().equals(manhwa) && a.isValid()) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    private String formatTimeRemaining(Access access) {
+        try {
+            // Assuming Access has an expiry date method
+            LocalDateTime expiry = access.getExpiryDate();
+            if (expiry == null) return "Until: Unknown";
+            
+            LocalDateTime now = LocalDateTime.now();
+            Duration duration = Duration.between(now, expiry);
+            
+            long days = duration.toDays();
+            long hours = duration.toHours() % 24;
+            
+            if (days > 0) {
+                return "Until: " + days + "d " + hours + "h";
+            } else if (hours > 0) {
+                return "Until: " + hours + "h";
+            } else {
+                long minutes = duration.toMinutes();
+                return "Until: " + minutes + "m";
+            }
+        } catch (Exception e) {
+            return "Until: Unknown";
+        }
+    }
 
     private ImageIcon loadImage(String imageUrl) {
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
             return null;
         }
 
-        // Check cache first
         if (imageCache.containsKey(imageUrl)) {
             return imageCache.get(imageUrl);
         }
 
         try {
-            // Use the non-deprecated way to create URL
             URI uri = new URI(imageUrl);
             URL url = uri.toURL();
             BufferedImage img = ImageIO.read(url);
@@ -406,35 +575,21 @@ public class LibraryPanel extends JPanel {
         panel.setMaximumSize(new Dimension(600, 40));
         panel.setPreferredSize(new Dimension(600, 40));
 
-        JButton prevBtn = new JButton("◄ Previous");
-        JButton nextBtn = new JButton("Next ►");
+        JButton prevBtn = createNavButton("◄ Previous");
+        JButton nextBtn = createNavButton("Next ►");
 
-        styleNavButton(prevBtn);
-        styleNavButton(nextBtn);
-
-        prevBtn.addActionListener(e -> {
-            if (currentGridPage > 0) {
-                currentGridPage--;
-                updateGrid();
-            }
-        });
-
-        nextBtn.addActionListener(e -> {
-            List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
-            if ((currentGridPage + 1) * ITEMS_PER_PAGE < owned.size()) {
-                currentGridPage++;
-                updateGrid();
-            }
-        });
+        prevBtn.addActionListener(e -> navigatePrevious());
+        nextBtn.addActionListener(e -> navigateNext());
 
         panel.add(prevBtn);
         panel.add(nextBtn);
         return panel;
     }
 
-    private void styleNavButton(JButton btn) {
+    private JButton createNavButton(String text) {
+        JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setBackground(new Color(20, 108, 148));
+        btn.setBackground(PRIMARY_BLUE);
         btn.setForeground(Color.WHITE);
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
@@ -442,7 +597,21 @@ public class LibraryPanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(130, 36));
         btn.setMargin(new Insets(4, 10, 4, 10));
+        return btn;
     }
 
-    
+    private void navigatePrevious() {
+        if (currentGridPage > 0) {
+            currentGridPage--;
+            updateGrid();
+        }
+    }
+
+    private void navigateNext() {
+        List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
+        if ((currentGridPage + 1) * ITEMS_PER_PAGE < owned.size()) {
+            currentGridPage++;
+            updateGrid();
+        }
+    }
 }

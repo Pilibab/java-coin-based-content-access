@@ -17,4 +17,9 @@ public class RentalAccess extends Access {
     public boolean isValid() {
         return LocalDateTime.now().isBefore(expiry);
     }
+
+    @Override
+    public LocalDateTime getExpiryDate() {
+        return expiry;
+    }
 }

@@ -48,5 +48,9 @@ public class Library {
         }
         return list;
     }
+    // Add to Library class
+    public List<Access> getAccesses() {
+        return accesses;
+    }
 }
 

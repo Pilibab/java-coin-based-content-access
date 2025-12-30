@@ -1,4 +1,6 @@
 package domain.content.access;
+import java.time.LocalDateTime;
+
 import domain.content.Manhwa;
 
 public class PermanentAccess extends Access {
@@ -10,5 +12,10 @@ public class PermanentAccess extends Access {
     @Override
     public boolean isValid() {
         return true;
+    }
+
+        @Override
+    public LocalDateTime getExpiryDate() {
+        return null; // Permanent access never expires
     }
 }
