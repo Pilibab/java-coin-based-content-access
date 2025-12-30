@@ -22,6 +22,7 @@ public class Main {
             // 2. Get a specific item (e.g., the first one at index 0)
             Manhwa selectedManhwa = list.get(0);
 
+            // MainFrame 
             MainFrame frame = new MainFrame(purchaseService, selectedManhwa);
             frame.setVisible(true);
         });
