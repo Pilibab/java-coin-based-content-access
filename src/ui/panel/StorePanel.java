@@ -100,8 +100,7 @@ public class StorePanel extends JPanel {
        
         JButton storeBtn = createTopBarButton("Store");
         JButton libraryBtn = createTopBarButton("Library");
-        JButton cartBtn = createTopBarButton("Cart");
-       
+        
         coinsLabel = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
         coinsLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         coinsLabel.setForeground(Color.WHITE);
@@ -111,14 +110,9 @@ public class StorePanel extends JPanel {
         libraryBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
         });
-       
-        cartBtn.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Navigate to Cart", "Cart", JOptionPane.INFORMATION_MESSAGE);
-        });
-       
+    
         rightPanel.add(storeBtn);
         rightPanel.add(libraryBtn);
-        rightPanel.add(cartBtn);
         rightPanel.add(Box.createHorizontalStrut(8));
         rightPanel.add(coinsLabel);
        
