@@ -1,7 +1,8 @@
 package ui.frame;
 
-import javax.swing.*;
+import domain.user.User;
 import java.awt.*;
+import javax.swing.*;
 import service.PurchaseService;
 import ui.panel.ManhwaClicked;
 import ui.panel.StorePanel;    // Added this back in

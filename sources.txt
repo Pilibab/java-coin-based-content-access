@@ -1,0 +1,16 @@
+src/app/CsvOpener.java
+src/app/Main.java
+src/domain/content/access/Access.java
+src/domain/content/access/PermanentAccess.java
+src/domain/content/access/RentalAccess.java
+src/domain/content/Manhwa.java
+src/domain/transaction/Transaction.java
+src/domain/transaction/UnlockManhwa.java
+src/domain/user/Library.java
+src/domain/user/User.java
+src/domain/user/Wallet.java
+src/persistence/Repository.java
+src/service/PurchaseService.java
+src/ui/frame/MainFrame.java
+src/ui/panel/LibraryPanel.java
+src/ui/panel/StorePanel.java

@@ -4,11 +4,12 @@ package ui.panel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import javax.swing.*;
 import service.PurchaseService;
 import ui.frame.MainFrame;
 import domain.content.Manhwa;
@@ -113,6 +114,9 @@ public class StorePanel extends JPanel {
     
         libraryBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
+
+            MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            frame.showLibrary(currentUser);
         });
     
         rightPanel.add(storeBtn);
