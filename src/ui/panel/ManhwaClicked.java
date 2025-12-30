@@ -132,27 +132,49 @@ public class ManhwaClicked extends JPanel {
     }
 
     // 4. Buy and Rent Buttons
+
+    // 4. Buy and Rent Buttons (with conditional display)
     private void addActionButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setOpaque(false);
         buttonPanel.setMaximumSize(new Dimension(640, 50));
 
-        JButton buyButton = createActionButton("Buy", new Color(76, 175, 80));
-        JButton rentButton = createActionButton("Rent", new Color(33, 150, 243));
+        // Check ownership status
+        boolean hasPermanent = user != null && purchaseService.hasPermanentAccess(user, manhwa);
+        boolean hasAnyAccess = user != null && purchaseService.hasAnyAccess(user, manhwa);
 
-        buyButton.addActionListener(e -> {
-            if (user != null) purchaseService.buyManhwa(user, manhwa);
-        });
-        
-        rentButton.addActionListener(e -> {
-            if (user != null) purchaseService.rentManhwa(user, manhwa);
-        });
+        if (hasPermanent) {
+            // User owns it permanently - show "Owned" label instead of buttons
+            JLabel ownedLabel = new JLabel("✓ Owned");
+            ownedLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            ownedLabel.setForeground(new Color(76, 175, 80));
+            buttonPanel.add(ownedLabel);
+        } else if (hasAnyAccess) {
+            // User has rental access - show only Buy button
+            JButton buyButton = createActionButton("Buy", new Color(76, 175, 80));
+            buyButton.addActionListener(e -> {
+                if (user != null) purchaseService.buyManhwa(user, manhwa);
+            });
+            buttonPanel.add(buyButton);
+        } else {
+            // User has no access - show both buttons
+            JButton buyButton = createActionButton("Buy", new Color(76, 175, 80));
+            JButton rentButton = createActionButton("Rent", new Color(33, 150, 243));
 
-        buttonPanel.add(buyButton);
-        buttonPanel.add(rentButton);
+            buyButton.addActionListener(e -> {
+                if (user != null) purchaseService.buyManhwa(user, manhwa);
+            });
+            
+            rentButton.addActionListener(e -> {
+                if (user != null) purchaseService.rentManhwa(user, manhwa);
+            });
+
+            buttonPanel.add(buyButton);
+            buttonPanel.add(rentButton);
+        }
+
         add(buttonPanel);
     }
-
     // Helper for button styling
     private JButton createActionButton(String text, Color bg) {
         JButton btn = new JButton(text);

@@ -66,9 +66,7 @@ public class PurchaseService {
     public boolean hasAnyAccess(User user, Manhwa manhwa) {
         return user.getLibrary().hasValidAccess(manhwa);
     }
-
-    // public boolean hasPermanentAccess(User user, Manhwa manhwa) {
-    //     return user.getLibrary().hasPermanentAccess(manhwa);
-    // }
-
+    public boolean hasPermanentAccess(User user, Manhwa manhwa) {
+        return user.getLibrary().hasPermanentAccess(manhwa);
+    }
 }

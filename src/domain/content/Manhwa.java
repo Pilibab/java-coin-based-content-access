@@ -1,5 +1,7 @@
 package domain.content;
 
+import java.util.Objects;
+
 public class Manhwa {
     private int rank;
     private String title;
@@ -33,4 +35,22 @@ public class Manhwa {
     public String getPublishedDate() { return publishedDate; }
     public String getTags() { return tags; }
     public String getLink() { return link; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Manhwa manhwa = (Manhwa) o;
+        // Compare by link (unique identifier) or title if link is null
+        if (link != null && manhwa.link != null) {
+            return link.equals(manhwa.link);
+        }
+        return title != null && title.equalsIgnoreCase(manhwa.title);
+    }
+
+    @Override
+    public int hashCode() {
+        // Use link as primary hash, fallback to title
+        return Objects.hash(link != null ? link : (title != null ? title.toLowerCase() : ""));
+    }
 }
