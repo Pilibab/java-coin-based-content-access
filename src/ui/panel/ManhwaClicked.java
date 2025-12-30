@@ -3,16 +3,20 @@ package ui.panel;
 import javax.swing.*;
 import java.awt.*;
 import service.PurchaseService;
+import ui.frame.MainFrame;
 import domain.content.Manhwa;
 
 public class ManhwaClicked extends JPanel {
 
     private final PurchaseService purchaseService;
     private final Manhwa manhwa;
+    private MainFrame frame;
 
-    public ManhwaClicked(PurchaseService purchaseService, Manhwa manhwa) {
+    public ManhwaClicked(PurchaseService purchaseService, 
+        Manhwa manhwa, MainFrame frame) {
         this.purchaseService = purchaseService;
         this.manhwa = manhwa;
+        this.frame = frame;
 
         initLayout();
         initComponents();
@@ -55,6 +59,7 @@ public class ManhwaClicked extends JPanel {
         add(titlePanel);
         add(Box.createRigidArea(new Dimension(0, 20)));
 
+        backButton.addActionListener(e -> frame.showStore());
 
         // 2. Image
         try {

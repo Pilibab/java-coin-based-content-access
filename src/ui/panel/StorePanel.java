@@ -10,6 +10,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import service.PurchaseService;
+import ui.frame.MainFrame;
 import domain.content.Manhwa;
 import domain.user.User;
 import app.CsvOpener;
@@ -17,6 +18,8 @@ import app.CsvOpener;
 
 public class StorePanel extends JPanel {
     private final PurchaseService purchaseService;
+    private final MainFrame frame;
+
     private List<Manhwa> manhwaList;
     private User currentUser;
     private JLabel coinsLabel;
@@ -25,14 +28,15 @@ public class StorePanel extends JPanel {
     private JPanel gridPanel;
     private int currentGridPage = 0;
     private final int ITEMS_PER_PAGE = 4;
-   
+
     // Cache for loaded images
     private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
 
 
-    public StorePanel(PurchaseService purchaseService) {
+    public StorePanel(PurchaseService purchaseService, MainFrame frame) {
         this.purchaseService = purchaseService;
         this.currentUser = new User(1000);
+        this.frame = frame;
        
         setLayout(new BorderLayout());
         setBackground(new Color(248, 248, 248));
@@ -81,7 +85,7 @@ public class StorePanel extends JPanel {
        
         add(container, BorderLayout.CENTER);
     }
-   
+
     private JPanel createTopBar() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(20, 108, 148));
@@ -97,16 +101,16 @@ public class StorePanel extends JPanel {
         // Right side - Navigation buttons and wallet
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         rightPanel.setOpaque(false);
-       
+    
         JButton storeBtn = createTopBarButton("Store");
         JButton libraryBtn = createTopBarButton("Library");
         
         coinsLabel = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
         coinsLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         coinsLabel.setForeground(Color.WHITE);
-       
+    
         storeBtn.setEnabled(false);
-       
+    
         libraryBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
         });
@@ -121,7 +125,7 @@ public class StorePanel extends JPanel {
        
         return panel;
     }
-   
+
     private JButton createTopBarButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
@@ -147,7 +151,7 @@ public class StorePanel extends JPanel {
        
         return btn;
     }
-   
+
     private JPanel createSectionHeader(String title) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         panel.setOpaque(false);
@@ -161,7 +165,7 @@ public class StorePanel extends JPanel {
         panel.add(titleLabel);
         return panel;
     }
-   
+
     private JPanel createTopTenCarousel() {
         JPanel carouselPanel = new JPanel(new BorderLayout());
         carouselPanel.setOpaque(false);
@@ -199,7 +203,7 @@ public class StorePanel extends JPanel {
        
         return carouselPanel;
     }
-   
+
     private void styleCarouselButton(JButton btn) {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
         btn.setBackground(new Color(20, 108, 148));
@@ -209,7 +213,7 @@ public class StorePanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(45, 150));
     }
-   
+
     private void updateTopTenImage() {
         topTenImagePanel.removeAll();
        
@@ -278,7 +282,7 @@ public class StorePanel extends JPanel {
         topTenImagePanel.revalidate();
         topTenImagePanel.repaint();
     }
-   
+
     private JPanel createSearchBar() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
@@ -311,7 +315,7 @@ public class StorePanel extends JPanel {
         panel.add(searchField, BorderLayout.CENTER);
         return panel;
     }
-   
+
     private JPanel createManhwaGrid() {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
@@ -326,7 +330,7 @@ public class StorePanel extends JPanel {
         container.add(gridPanel, BorderLayout.CENTER);
         return container;
     }
-   
+
     private void updateGrid() {
         gridPanel.removeAll();
        
@@ -340,7 +344,7 @@ public class StorePanel extends JPanel {
         gridPanel.revalidate();
         gridPanel.repaint();
     }
-   
+
     private JPanel createManhwaCard(Manhwa manhwa) {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -394,16 +398,16 @@ public class StorePanel extends JPanel {
         infoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         infoLabel.setHorizontalAlignment(SwingConstants.CENTER);
         infoLabel.setPreferredSize(new Dimension(100, 30));
-       
+    
         card.add(imagePanel);
         card.add(Box.createVerticalStrut(6));
         card.add(titleLabel);
         card.add(Box.createVerticalStrut(2));
         card.add(infoLabel);
-       
+    
         card.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                showManhwaDetails(manhwa);
+                frame.showManhwaDetails(manhwa);
             }
             public void mouseEntered(MouseEvent e) {
                 card.setBackground(new Color(250, 250, 250));
@@ -423,13 +427,13 @@ public class StorePanel extends JPanel {
        
         return card;
     }
-   
+
     private JPanel createNavigationPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setOpaque(false);
         panel.setMaximumSize(new Dimension(610, 35));
         panel.setPreferredSize(new Dimension(610, 35));
-       
+    
         JButton prevBtn = new JButton("◄ Previous");
         JButton nextBtn = new JButton("Next ►");
 
@@ -465,16 +469,16 @@ public class StorePanel extends JPanel {
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setPreferredSize(new Dimension(100, 32));
     }
-   
+
     private ImageIcon loadImage(String imageUrl) {
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
             return null;
         }
-       
+    
         if (imageCache.containsKey(imageUrl)) {
             return imageCache.get(imageUrl);
         }
-       
+    
         try {
             URI uri = new URI(imageUrl);
             URL url = uri.toURL();
@@ -487,124 +491,10 @@ public class StorePanel extends JPanel {
         } catch (Exception e) {
             System.err.println("Failed to load image from URL: " + imageUrl);
         }
-       
+    
         return null;
     }
-   
-    private void showManhwaDetails(Manhwa manhwa) {
-        JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), manhwa.getTitle(), true);
-        dialog.setLayout(new BorderLayout());
-        dialog.setSize(600, 450);
-        dialog.setLocationRelativeTo(this);
-       
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-       
-        JPanel imagePanel = new JPanel(new BorderLayout());
-        imagePanel.setBackground(new Color(240, 240, 240));
-        imagePanel.setPreferredSize(new Dimension(150, 200));
-        imagePanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-       
-        JLabel imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-       
-        try {
-            ImageIcon coverImage = loadImage(manhwa.getCoverImageUrl());
-            if (coverImage != null) {
-                Image scaledImage = coverImage.getImage().getScaledInstance(150, 200, Image.SCALE_SMOOTH);
-                imageLabel.setIcon(new ImageIcon(scaledImage));
-            } else {
-                imageLabel.setText("📖");
-                imageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 48));
-            }
-        } catch (Exception e) {
-            imageLabel.setText("📖");
-            imageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 48));
-        }
-       
-        imagePanel.add(imageLabel, BorderLayout.CENTER);
-       
-        JLabel titleLabel = new JLabel(manhwa.getTitle());
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-       
-        JLabel infoLabel = new JLabel("Rank #" + manhwa.getRank() + "  |  ⭐ " + manhwa.getRating() + "  |  📖 " + manhwa.getChapters());
-        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        infoLabel.setForeground(new Color(120, 120, 120));
-        infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-       
-        JTextArea synopsisArea = new JTextArea(manhwa.getSynopsis());
-        synopsisArea.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        synopsisArea.setLineWrap(true);
-        synopsisArea.setWrapStyleWord(true);
-        synopsisArea.setEditable(false);
-        synopsisArea.setBackground(new Color(250, 250, 250));
-        synopsisArea.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-       
-        JScrollPane scrollPane = new JScrollPane(synopsisArea);
-        scrollPane.setPreferredSize(new Dimension(550, 180));
-        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-       
-        double price = purchaseService.calculateCoinValue(manhwa);
-        JLabel priceLabel = new JLabel("💰 " + (int)price + " coins");
-        priceLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        priceLabel.setForeground(new Color(255, 152, 0));
-        priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-       
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        buttonPanel.setOpaque(false);
-        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-       
-        JButton buyBtn = new JButton("Buy");
-        JButton rentBtn = new JButton("Rent");
-       
-        buyBtn.setBackground(new Color(76, 175, 80));
-        buyBtn.setForeground(Color.WHITE);
-        buyBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        buyBtn.setBorderPainted(false);
-        buyBtn.setFocusPainted(false);
-        buyBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        buyBtn.setPreferredSize(new Dimension(80, 32));
-       
-        rentBtn.setBackground(new Color(33, 150, 243));
-        rentBtn.setForeground(Color.WHITE);
-        rentBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        rentBtn.setBorderPainted(false);
-        rentBtn.setFocusPainted(false);
-        rentBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        rentBtn.setPreferredSize(new Dimension(80, 32));
-       
-        buyBtn.addActionListener(e -> {
-            handlePurchase(manhwa, true);
-            dialog.dispose();
-        });
-       
-        rentBtn.addActionListener(e -> {
-            handlePurchase(manhwa, false);
-            dialog.dispose();
-        });
-       
-        buttonPanel.add(buyBtn);
-        buttonPanel.add(rentBtn);
-       
-        contentPanel.add(titleLabel);
-        contentPanel.add(Box.createVerticalStrut(8));
-        contentPanel.add(infoLabel);
-        contentPanel.add(Box.createVerticalStrut(12));
-        contentPanel.add(imagePanel);
-        contentPanel.add(Box.createVerticalStrut(12));
-        contentPanel.add(scrollPane);
-        contentPanel.add(Box.createVerticalStrut(12));
-        contentPanel.add(priceLabel);
-        contentPanel.add(Box.createVerticalStrut(8));
-        contentPanel.add(buttonPanel);
-       
-        dialog.add(contentPanel);
-        dialog.setVisible(true);
-    }
-   
+
     private void handlePurchase(Manhwa manhwa, boolean permanent) {
         boolean success = permanent ?
             purchaseService.buyManhwa(currentUser, manhwa) :

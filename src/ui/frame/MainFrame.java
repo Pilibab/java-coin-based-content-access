@@ -8,29 +8,40 @@ import ui.panel.StorePanel;    // Added this back in
 import domain.content.Manhwa;
 
 public class MainFrame extends JFrame {
+
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+
     private PurchaseService purchaseService;
+    private StorePanel storePanel;
 
+    public MainFrame(PurchaseService purchaseService) {
+        this.purchaseService = purchaseService;
 
-    public MainFrame(PurchaseService service, Manhwa manhwa) {
-        this.purchaseService = service;
-        
-        setTitle("Manhwa Store - Manhwa.to");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-        setResizable(false);
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+
+        storePanel = new StorePanel(purchaseService, this);
+
+        mainPanel.add(storePanel, "STORE");
+
+        add(mainPanel);
+        setTitle("Manhwa Store");
         setSize(640, 720);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
-        // Set light theme colors (Apple-style white)
-        getContentPane().setBackground(new Color(248, 248, 248));
-
-        // DECISION: Which panel to show? 
-        // If you want the clicked Manhwa view:
-        setContentPane(new ManhwaClicked(service, manhwa));
-        
-        // If you wanted the Store view instead, you would use:
-        // setContentPane(new StorePanel(service));
-
         setVisible(true);
+    }
+
+    public void showManhwaDetails(Manhwa manhwa) {
+        ManhwaClicked detailsPanel =
+                new ManhwaClicked(purchaseService, manhwa, this);
+
+        mainPanel.add(detailsPanel, "DETAILS");
+        cardLayout.show(mainPanel, "DETAILS");
+    }
+
+    public void showStore() {
+        cardLayout.show(mainPanel, "STORE");
     }
 }
