@@ -6,20 +6,26 @@ import ui.frame.MainFrame;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
+import java.util.ArrayList;
 
 public class LibraryPanel extends JPanel {
     private User currentUser;
     private JLabel coinsLabel;
     private JPanel gridPanel;
-    // Cache for loaded images (copied from StorePanel)
-    private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
+    private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>(); //cache for loaded images
+    private JTextField searchField;
+    private static final String SEARCH_PLACEHOLDER = "Search Your Library";
     private int currentGridPage = 0;
     private final int ITEMS_PER_PAGE = 4;
     private JPanel navPanel;
@@ -38,12 +44,12 @@ public class LibraryPanel extends JPanel {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(new Color(248, 248, 248));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));   //change: 15, 20, 15, 20
         mainPanel.setPreferredSize(new Dimension(640, 720));
         mainPanel.setMaximumSize(new Dimension(640, 720));
 
         mainPanel.add(createTopBar());
-        mainPanel.add(Box.createVerticalStrut(15));
+        mainPanel.add(Box.createVerticalStrut(8)); //change from 15
 
         JLabel header = new JLabel("Your Library");
         header.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -53,8 +59,13 @@ public class LibraryPanel extends JPanel {
         headerPanel.add(header);
         headerPanel.setMaximumSize(new Dimension(600, 30));
         mainPanel.add(headerPanel);
+        mainPanel.add(Box.createVerticalStrut(8));
+
+        // Search field placed under the "Your Library" header
+        mainPanel.add(createSearchHeader());
         mainPanel.add(Box.createVerticalStrut(10));
 
+        // Library grid directly below the search bar
         mainPanel.add(createLibraryGrid());
         mainPanel.add(Box.createVerticalStrut(15));
         navPanel = createNavigationPanel();
@@ -72,32 +83,32 @@ public class LibraryPanel extends JPanel {
     private JPanel createTopBar() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(20, 108, 148));
-        panel.setMaximumSize(new Dimension(600, 50));
-        panel.setPreferredSize(new Dimension(600, 50));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        panel.setMaximumSize(new Dimension(610, 45));  //change from 600 50
+        panel.setPreferredSize(new Dimension(610, 45)); //""
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12)); //10 15 10 15
 
         JLabel appName = new JLabel("Manhwa db");
-        appName.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        appName.setFont(new Font("Segoe UI", Font.BOLD, 18)); //change from 20
         appName.setForeground(Color.WHITE);
 
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0)); //change from 10, 0
         rightPanel.setOpaque(false);
 
         JButton storeBtn = createTopBarButton("Store");
         JButton libraryBtn = createTopBarButton("Library");
         JButton cartBtn = createTopBarButton("Cart");
 
-        // In Library panel, the Library button is disabled
+        //the Library button is disabled
         libraryBtn.setEnabled(false);
 
-        // Store button should be enabled and navigate back to Store (use MainFrame to preserve user)
+        // store button shoukd be enabled and navigate back to store
         storeBtn.addActionListener(e -> {
             MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
             frame.showStore();
         });
 
         coinsLabel = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
-        coinsLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        coinsLabel.setFont(new Font("Segoe UI", Font.BOLD, 13)); //change from 14
         coinsLabel.setForeground(Color.WHITE);
 
         rightPanel.add(storeBtn);
@@ -112,29 +123,142 @@ public class LibraryPanel extends JPanel {
         return panel;
     }
 
+    private JPanel createSearchHeader() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        panel.setOpaque(false);
+
+        searchField = new JTextField(20);
+        searchField.setPreferredSize(new Dimension(320,  thirtyTwo()));
+        searchField.setBackground(new Color(240, 240, 240));
+        searchField.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        searchField.setText(SEARCH_PLACEHOLDER);
+        searchField.setForeground(Color.GRAY);
+
+        // Placeholder behavior
+        searchField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (SEARCH_PLACEHOLDER.equals(searchField.getText())) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (searchField.getText().trim().isEmpty()) {
+                    searchField.setText(SEARCH_PLACEHOLDER);
+                    searchField.setForeground(Color.GRAY);
+                    updateGrid();
+                }
+            }
+        });
+
+        // Live filtering
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            private void changed() {
+                String q = searchField.getText();
+                if (q == null) q = "";
+                q = q.trim();
+                if (q.isEmpty() || SEARCH_PLACEHOLDER.equals(q)) {
+                    updateGrid();
+                    return;
+                }
+
+                List<Manhwa> owned = currentUser.getLibrary().getOwnedContent();
+                List<Manhwa> filtered = new ArrayList<>();
+                if (owned != null) {
+                    String low = q.toLowerCase();
+                    for (Manhwa m : owned) {
+                        String title = m.getTitle() == null ? "" : m.getTitle();
+                        String tags = m.getTags() == null ? "" : m.getTags();
+                        if (title.toLowerCase().contains(low) || tags.toLowerCase().contains(low)) {
+                            filtered.add(m);
+                        }
+                    }
+                }
+
+                refreshLibraryGrid(filtered);
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) { changed(); }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) { changed(); }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) { changed(); }
+        });
+
+        panel.add(searchField);
+        return panel;
+    }
+
+    // Helper used in preferred size to avoid magic number inlined errors
+    private int thirtyTwo() { return 32; }
+
+    private void refreshLibraryGrid(List<Manhwa> filteredList) {
+        gridPanel.removeAll();
+
+        if (filteredList == null || filteredList.isEmpty()) {
+            gridPanel.setLayout(new BorderLayout());
+            JPanel emptyPanel = new JPanel(new BorderLayout());
+            emptyPanel.setOpaque(false);
+            JLabel emptyLabel = new JLabel("No manhwa found", SwingConstants.CENTER);
+            emptyLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+            emptyLabel.setForeground(new Color(120, 120, 120));
+            emptyPanel.add(emptyLabel, BorderLayout.CENTER);
+            gridPanel.add(emptyPanel, BorderLayout.CENTER);
+            if (navPanel != null) navPanel.setVisible(false);
+        } else {
+                // Show filtered results in 2x2 so cards keep consistent heights
+                gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
+                int shown = 0;
+                for (Manhwa m : filteredList) {
+                    if (shown >= ITEMS_PER_PAGE) break;
+                    gridPanel.add(createOwnedCard(m));
+                    shown++;
+                }
+                // Fill remaining slots to keep layout consistent
+                for (int i = shown; i < ITEMS_PER_PAGE; i++) {
+                    JPanel empty = new JPanel();
+                    empty.setBackground(new Color(250, 250, 250));
+                    empty.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 1));
+                    gridPanel.add(empty);
+                }
+            if (navPanel != null) navPanel.setVisible(false);
+        }
+
+        // no wrapper re-attachment needed (gridPanel added directly to container)
+
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
+
     private JButton createTopBarButton(String text) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11)); //change from 12
         btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(30, 118, 158));
+        btn.setBackground(new Color(30, 118, 158)); 
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(70, 30));
+        btn.setPreferredSize(new Dimension(74, 28)); // change from 70, 30
         btn.setMaximumSize(new Dimension(70, 30));
         return btn;
     }
-
     private JPanel createLibraryGrid() {
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
-        container.setMaximumSize(new Dimension(600, 220));
-        container.setPreferredSize(new Dimension(600, 220));
+        container.setMaximumSize(new Dimension(600, 460));
+        container.setPreferredSize(new Dimension(600, 460));
 
-        gridPanel = new JPanel(new GridLayout(1, 4, 15, 15));
+        // 2 rows x 2 columns layout (shows 4 items per page)
+        gridPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         gridPanel.setOpaque(false);
-        gridPanel.setMaximumSize(new Dimension(600, 220));
-        gridPanel.setPreferredSize(new Dimension(600, 220));
+        gridPanel.setMaximumSize(new Dimension(600, 460));
+        gridPanel.setPreferredSize(new Dimension(600, 460));
 
         updateGrid();
 
@@ -158,8 +282,8 @@ public class LibraryPanel extends JPanel {
             emptyPanel.add(emptyLabel, BorderLayout.CENTER);
             gridPanel.add(emptyPanel, BorderLayout.CENTER);
         } else {
-            // Ensure grid layout for items
-            gridPanel.setLayout(new GridLayout(1, 4, 15, 15));
+            // Ensure 2x2 grid for the current page
+            gridPanel.setLayout(new GridLayout(2, 2, 15, 15));
 
             int startIdx = currentGridPage * ITEMS_PER_PAGE;
             int endIdx = Math.min(startIdx + ITEMS_PER_PAGE, owned.size());
@@ -170,7 +294,7 @@ public class LibraryPanel extends JPanel {
                 shown++;
             }
 
-            // Fill remaining slots with empty panels
+            // Fill remaining slots with empty panels up to 4 slots
             for (int i = shown; i < ITEMS_PER_PAGE; i++) {
                 JPanel empty = new JPanel();
                 empty.setBackground(new Color(250, 250, 250));
@@ -284,8 +408,8 @@ public class LibraryPanel extends JPanel {
         panel.setMaximumSize(new Dimension(600, 40));
         panel.setPreferredSize(new Dimension(600, 40));
 
-        JButton prevBtn = new JButton("< Previous");
-        JButton nextBtn = new JButton("Next >");
+        JButton prevBtn = new JButton("◄ Previous");
+        JButton nextBtn = new JButton("Next ►");
 
         styleNavButton(prevBtn);
         styleNavButton(nextBtn);
@@ -321,4 +445,6 @@ public class LibraryPanel extends JPanel {
         btn.setPreferredSize(new Dimension(130, 36));
         btn.setMargin(new Insets(4, 10, 4, 10));
     }
+
+    
 }

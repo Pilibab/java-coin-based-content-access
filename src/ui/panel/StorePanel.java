@@ -1,17 +1,18 @@
 package ui.panel;
 
-import javax.swing.*;
+import app.CsvOpener;
+import domain.content.Manhwa;
+import domain.user.User;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import javax.swing.*;
 import service.PurchaseService;
-import domain.content.Manhwa;
-import domain.user.User;
-import app.CsvOpener;
+import ui.frame.MainFrame;
 
 public class StorePanel extends JPanel {
     private final PurchaseService purchaseService;
@@ -27,9 +28,9 @@ public class StorePanel extends JPanel {
     // Cache for loaded images
     private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
 
-    public StorePanel(PurchaseService purchaseService) {
+    public StorePanel(PurchaseService purchaseService, domain.user.User user) {
         this.purchaseService = purchaseService;
-        this.currentUser = new User(1000);
+        this.currentUser = user;
         
         setLayout(new BorderLayout());
         setBackground(new Color(248, 248, 248));
@@ -113,6 +114,9 @@ public class StorePanel extends JPanel {
         
         libraryBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
+
+            MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            frame.showLibrary(currentUser);
         });
         
         cartBtn.addActionListener(e -> {
@@ -618,10 +622,18 @@ public class StorePanel extends JPanel {
     }
     
     private void handlePurchase(Manhwa manhwa, boolean permanent) {
-        boolean success = permanent ? 
+        // Prevent attempting to purchase/rent if user already has valid access
+        if (currentUser.getLibrary().hasValidAccess(manhwa)) {
+            JOptionPane.showMessageDialog(this,
+                "You already own this manhwa.",
+                "Already Owned", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        boolean success = permanent ?
             purchaseService.buyManhwa(currentUser, manhwa) :
             purchaseService.rentManhwa(currentUser, manhwa);
-        
+
         if (success) {
             updateCoinsDisplay();
             JOptionPane.showMessageDialog(this,
