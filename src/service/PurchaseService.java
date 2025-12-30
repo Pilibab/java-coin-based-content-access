@@ -63,4 +63,12 @@ public class PurchaseService {
         Transaction tx = new UnlockManhwa(user, PERMANENT_COST, access);
         return tx.execute();
     }
+    public boolean hasAnyAccess(User user, Manhwa manhwa) {
+        return user.getLibrary().hasValidAccess(manhwa);
+    }
+
+    // public boolean hasPermanentAccess(User user, Manhwa manhwa) {
+    //     return user.getLibrary().hasPermanentAccess(manhwa);
+    // }
+
 }

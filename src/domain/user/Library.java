@@ -2,6 +2,8 @@ package domain.user;
 
 import domain.content.Manhwa;
 import domain.content.access.Access;
+import domain.content.access.PermanentAccess;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,17 @@ public class Library {
     public void addAccess(Access access) {
         accesses.add(access);
     }
+
+    // public boolean hasPermanentAccess(Manhwa manhwa) {
+    //     for (Access a : accesses) {
+    //         if (a.manhwa.equals(manhwa)
+    //                 && a instanceof PermanentAccess
+    //                 && a.isValid()) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     public boolean hasValidAccess(Manhwa manhwa) 
     /**
