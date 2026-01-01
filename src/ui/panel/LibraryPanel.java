@@ -132,7 +132,7 @@ public class LibraryPanel extends JPanel {
     }
 
     private JLabel createCoinsLabel() {
-        JLabel label = new JLabel("💰 " + (int)currentUser.getWallet().getCoins());
+        JLabel label = new JLabel("💰 " + currentUser.getWallet().getCoins());
         label.setFont(new Font("Segoe UI", Font.BOLD, 13));
         label.setForeground(Color.WHITE);
         return label;
@@ -140,7 +140,7 @@ public class LibraryPanel extends JPanel {
 
     private void navigateToStore() {
         MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
-        frame.showStore();
+        frame.showStore(this.currentUser);
     }
 
     private JButton createTopBarButton(String text) {

@@ -71,7 +71,7 @@ public class ManhwaClicked extends JPanel {
         JButton backButton = new JButton("← Back");
         backButton.setPreferredSize(new Dimension(80, 30));
         backButton.setMaximumSize(new Dimension(80, 30));
-        backButton.addActionListener(e -> frame.showStore());
+        backButton.addActionListener(e -> frame.showStore(this.user));
 
         JLabel titleLabel = new JLabel(manhwa.getTitle());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 18));

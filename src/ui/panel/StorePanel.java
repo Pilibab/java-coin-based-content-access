@@ -588,4 +588,14 @@ public class StorePanel extends JPanel {
         if (text.length() <= length) return text;
         return text.substring(0, length) + "...";
     }
+
+    public void updateData(User user) {
+        // updates the user data, for updating coin value display 
+        this.currentUser = user;
+
+        coinsLabel.setText("Coins: " + user.getWallet().getCoins());
+
+        revalidate();
+        repaint();
+    }
 }

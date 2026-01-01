@@ -62,7 +62,8 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainPanel, "LIBRARY");
     }
 
-    public void showStore() {
+    public void showStore(User user) {
+        storePanel.updateData(user);
         cardLayout.show(mainPanel, "STORE");
     }
 }
