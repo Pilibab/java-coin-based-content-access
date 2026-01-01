@@ -2,11 +2,14 @@ package ui.panel;
 
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import ui.frame.MainFrame;
@@ -18,6 +21,7 @@ public class StorePanel extends JPanel {
     private final MainFrame frame;
 
     private List<Manhwa> manhwaList;
+    private List<Manhwa> filteredManhwaList; // Filtered list based on search
     private User currentUser;
     private JLabel coinsLabel;
     private int currentTopIndex = 0;
@@ -25,6 +29,8 @@ public class StorePanel extends JPanel {
     private JPanel gridPanel;
     private int currentGridPage = 0;
     private final int ITEMS_PER_PAGE = 4;
+    private JTextField searchField;
+    private static final String SEARCH_PLACEHOLDER = "Search manhwa...";
 
     // Cache for loaded images
     private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
@@ -42,6 +48,7 @@ public class StorePanel extends JPanel {
 
         // ! should the store panel really be concerned with getting the manhwa?
         manhwaList = manhwas;
+        filteredManhwaList = new ArrayList<>(manhwas); // Initialize with all manhwa
 
     
         initComponents();
@@ -111,8 +118,6 @@ public class StorePanel extends JPanel {
         storeBtn.setEnabled(false);
     
         libraryBtn.addActionListener(e -> {
-            // JOptionPane.showMessageDialog(this, "Navigate to Library Panel", "Library", JOptionPane.INFORMATION_MESSAGE);
-
             MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
             frame.showUserLibrary(currentUser);
         });
@@ -179,13 +184,13 @@ public class StorePanel extends JPanel {
         topTenImagePanel.setBackground(Color.WHITE);
         topTenImagePanel.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230), 2));
         topTenImagePanel.setPreferredSize(new Dimension(520, 150));
-       
+    
         updateTopTenImage();
-       
+    
         // Navigation buttons
         JButton prevBtn = new JButton("‹");
         JButton nextBtn = new JButton("›");
-       
+    
         styleCarouselButton(prevBtn);
         styleCarouselButton(nextBtn);
        
@@ -290,32 +295,87 @@ public class StorePanel extends JPanel {
         panel.setOpaque(false);
         panel.setMaximumSize(new Dimension(610, 40));
         panel.setPreferredSize(new Dimension(610, 40));
-       
-        JTextField searchField = new JTextField("Search manhwa...");
+    
+        searchField = new JTextField(SEARCH_PLACEHOLDER);
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         searchField.setForeground(new Color(150, 150, 150));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
             BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
-       
+    
+        // Placeholder behavior
         searchField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (searchField.getText().equals("Search manhwa...")) {
+                if (searchField.getText().equals(SEARCH_PLACEHOLDER)) {
                     searchField.setText("");
                     searchField.setForeground(new Color(33, 33, 33));
                 }
             }
             public void focusLost(FocusEvent e) {
-                if (searchField.getText().isEmpty()) {
-                    searchField.setText("Search manhwa...");
+                if (searchField.getText().trim().isEmpty()) {
+                    searchField.setText(SEARCH_PLACEHOLDER);
                     searchField.setForeground(new Color(150, 150, 150));
                 }
             }
         });
-       
+
+        // Live search functionality
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                performSearch();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                performSearch();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                performSearch();
+            }
+        });
+    
         panel.add(searchField, BorderLayout.CENTER);
         return panel;
+    }
+
+    private void performSearch() {
+        String query = searchField.getText();
+        if (query == null) query = "";
+        query = query.trim();
+
+        // If placeholder or empty, show all manhwa
+        if (query.isEmpty() || SEARCH_PLACEHOLDER.equals(query)) {
+            filteredManhwaList = new ArrayList<>(manhwaList);
+        } else {
+            filteredManhwaList = filterManhwa(query);
+        }
+
+        currentGridPage = 0; // Reset to first page when searching
+        updateGrid();
+    }
+
+    private List<Manhwa> filterManhwa(String query) {
+        List<Manhwa> filtered = new ArrayList<>();
+        String lowQuery = query.toLowerCase();
+
+        for (Manhwa manhwa : manhwaList) {
+            if (matchesSearch(manhwa, lowQuery)) {
+                filtered.add(manhwa);
+            }
+        }
+
+        return filtered;
+    }
+
+    private boolean matchesSearch(Manhwa manhwa, String query) {
+        String title = manhwa.getTitle() == null ? "" : manhwa.getTitle().toLowerCase();
+        String tags = manhwa.getTags() == null ? "" : manhwa.getTags().toLowerCase();
+        
+        return title.contains(query) || tags.contains(query);
     }
 
     private JPanel createManhwaGrid() {
@@ -336,15 +396,41 @@ public class StorePanel extends JPanel {
     private void updateGrid() {
         gridPanel.removeAll();
        
-        int startIdx = currentGridPage * ITEMS_PER_PAGE;
-        int endIdx = Math.min(startIdx + ITEMS_PER_PAGE, manhwaList.size());
-       
-        for (int i = startIdx; i < endIdx; i++) {
-            gridPanel.add(createManhwaCard(manhwaList.get(i)));
+        if (filteredManhwaList.isEmpty()) {
+            displayNoResultsMessage();
+        } else {
+            displayManhwaCards();
         }
        
         gridPanel.revalidate();
         gridPanel.repaint();
+    }
+
+    private void displayNoResultsMessage() {
+        gridPanel.setLayout(new BorderLayout());
+        JLabel noResults = new JLabel("No manhwa found", SwingConstants.CENTER);
+        noResults.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        noResults.setForeground(new Color(120, 120, 120));
+        gridPanel.add(noResults, BorderLayout.CENTER);
+    }
+
+    private void displayManhwaCards() {
+        gridPanel.setLayout(new GridLayout(2, 2, 12, 12));
+        
+        int startIdx = currentGridPage * ITEMS_PER_PAGE;
+        int endIdx = Math.min(startIdx + ITEMS_PER_PAGE, filteredManhwaList.size());
+       
+        for (int i = startIdx; i < endIdx; i++) {
+            gridPanel.add(createManhwaCard(filteredManhwaList.get(i)));
+        }
+
+        // Fill empty slots with blank panels to maintain grid structure
+        int displayed = endIdx - startIdx;
+        for (int i = displayed; i < ITEMS_PER_PAGE; i++) {
+            JPanel emptyPanel = new JPanel();
+            emptyPanel.setBackground(new Color(248, 248, 248));
+            gridPanel.add(emptyPanel);
+        }
     }
 
     private JPanel createManhwaCard(Manhwa manhwa) {
@@ -426,7 +512,7 @@ public class StorePanel extends JPanel {
                 ));
             }
         });
-       
+    
         return card;
     }
 
@@ -450,7 +536,7 @@ public class StorePanel extends JPanel {
         });
 
         nextBtn.addActionListener(e -> {
-            if ((currentGridPage + 1) * ITEMS_PER_PAGE < manhwaList.size()) {
+            if ((currentGridPage + 1) * ITEMS_PER_PAGE < filteredManhwaList.size()) {
                 currentGridPage++;
                 updateGrid();
             }
@@ -496,27 +582,6 @@ public class StorePanel extends JPanel {
     
         return null;
     }
-
-    // private void handlePurchase(Manhwa manhwa, boolean permanent) {
-    //     boolean success = permanent ?
-    //         purchaseService.buyManhwa(currentUser, manhwa) :
-    //         purchaseService.rentManhwa(currentUser, manhwa);
-    
-    //     if (success) {
-    //         updateCoinsDisplay();
-    //         JOptionPane.showMessageDialog(this,
-    //             "Successfully " + (permanent ? "purchased" : "rented") + " " + manhwa.getTitle(),
-    //             "Success", JOptionPane.INFORMATION_MESSAGE);
-    //     } else {
-    //         JOptionPane.showMessageDialog(this,
-    //             "Purchase failed. Check your coins or ownership status.",
-    //             "Failed", JOptionPane.ERROR_MESSAGE);
-    //     }
-    // }
-
-    // private void updateCoinsDisplay() {
-    //     coinsLabel.setText("💰 " + (int)currentUser.getWallet().getCoins());
-    // }
    
     private String truncateText(String text, int length) {
         if (text == null) return "";

@@ -25,7 +25,7 @@ public class MainFrame extends JFrame {
 
     private PurchaseService purchaseService;
     private StorePanel storePanel;
-    private User user;
+    // private User user;
 
     public MainFrame(PurchaseService purchaseService, User user, List<Manhwa> manhwa) {
         this.purchaseService = purchaseService;
